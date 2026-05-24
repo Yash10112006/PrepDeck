@@ -51,7 +51,7 @@ app.get('/api/notes', protect, getFilteredNotes);
 app.get('/api/pyqs', protect, getFilteredPyqs);
 
 // Fallback
-app.get('*', (req, res) => {
+app.use((req, res) => {
   if (req.path.startsWith('/uploads')) {
     return res.status(404).send('File not found');
   }
