@@ -2,7 +2,9 @@ const StudySession = require('../models/StudySession');
 const Document = require('../models/Document');
 const QuizAttempt = require('../models/QuizAttempt');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { PDFParse } = require('pdf-parse');
+//const { PDFParse } = require('pdf-parse');
+const pdfParseModule = require('pdf-parse');
+const pdfParse = pdfParseModule.default || pdfParseModule;
 const fs = require('fs');
 const path = require('path');
 
