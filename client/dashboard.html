@@ -285,13 +285,23 @@
                 document.getElementById('side-stat-focus').innerText = `${focusScore}%`;
                 
                 const totalStudyMinutes = Math.floor((stats.totalStudyTime || 0) / 60000);
-                const studyHours = (totalStudyMinutes / 60).toFixed(1);
+                let displayStudyTime = '';
+                if (totalStudyMinutes < 60) {
+                    displayStudyTime = `${totalStudyMinutes}m`;
+                } else {
+                    displayStudyTime = `${(totalStudyMinutes / 60).toFixed(1)}h`;
+                }
                 
                 const totalFocusedMinutes = Math.floor((stats.totalFocusedTime || 0) / 60000);
-                const focusedHours = (totalFocusedMinutes / 60).toFixed(1);
+                let displayFocusedTime = '';
+                if (totalFocusedMinutes < 60) {
+                    displayFocusedTime = `${totalFocusedMinutes}m`;
+                } else {
+                    displayFocusedTime = `${(totalFocusedMinutes / 60).toFixed(1)}h`;
+                }
                 
-                document.getElementById('main-stat-time').innerText = `${focusedHours}h`;
-                document.getElementById('side-stat-wktime').innerText = `${studyHours}h`; 
+                document.getElementById('main-stat-time').innerText = displayFocusedTime;
+                document.getElementById('side-stat-wktime').innerText = displayStudyTime; 
 
                 let visualProgress = focusScore; 
                 if (visualProgress === 0) visualProgress = 15; 

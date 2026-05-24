@@ -250,8 +250,13 @@
                 document.getElementById('agg-sessions').innerText = sessions.length || 0;
                 
                 const totalStudyMinutes = Math.floor((stats.totalStudyTime || 0) / 60000);
-                const studyHours = (totalStudyMinutes / 60).toFixed(1);
-                document.getElementById('agg-study-time').innerText = `${studyHours}h`;
+                let displayStudyTime = '';
+                if (totalStudyMinutes < 60) {
+                    displayStudyTime = `${totalStudyMinutes}m`;
+                } else {
+                    displayStudyTime = `${(totalStudyMinutes / 60).toFixed(1)}h`;
+                }
+                document.getElementById('agg-study-time').innerText = displayStudyTime;
                 
                 const focusScore = Math.round(stats.focusPercentage || 0);
                 document.getElementById('agg-focus').innerText = `${focusScore}%`;

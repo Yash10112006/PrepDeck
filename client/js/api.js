@@ -3,6 +3,25 @@ const API_BASE_URL = 'http://localhost:5000/api';
 class Api {
   constructor() {
     this.token = localStorage.getItem('prepdeck_token');
+    this.syncPendingSession();
+  }
+
+  async syncPendingSession() {
+    try {
+      const pending = localStorage.getItem('prepdeck_pending_session');
+      if (pending && this.token) {
+        const sessionData = JSON.parse(pending);
+        // Only sync if session lasted more than 2 seconds to filter out noise
+        if (sessionData.durationMs > 2000) {
+          sessionData.endTime = Date.now();
+          await this.saveStudySession(sessionData);
+        }
+        localStorage.removeItem('prepdeck_pending_session');
+      }
+    } catch (e) {
+      console.error("Failed to sync pending study session:", e);
+      localStorage.removeItem('prepdeck_pending_session');
+    }
   }
 
   getHeaders() {

@@ -424,6 +424,13 @@
                 else sessionData.distractedMs += 1000;
                 
                 updateUI();
+                
+                // Auto-save session state to local storage to prevent data loss on crash/close/reload
+                try {
+                    localStorage.setItem('prepdeck_pending_session', JSON.stringify(sessionData));
+                } catch(e) {
+                    console.error("Local storage auto-save error:", e);
+                }
             }, 1000);
         }
 
@@ -463,6 +470,7 @@
             
             try {
                 await api.saveStudySession(sessionData);
+                localStorage.removeItem('prepdeck_pending_session');
             } catch(e) {
                 console.error("Failed to save session", e);
             }
