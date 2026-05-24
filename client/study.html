@@ -157,6 +157,12 @@
                         <span><strong>API Key Missing:</strong> You are in Mock Mode. To get real questions from your PDF, add GEMINI_API_KEY to your .env file!</span>
                     </div>
 
+                    <!-- File protocol warning banner -->
+                    <div id="protocol-warning" class="hidden bg-yellow-500/20 border border-yellow-500/50 text-yellow-200 text-xs p-3 rounded-xl flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>
+                        <span><strong>Local File Detected:</strong> Browsers block Speech Recognition when opening files directly via <code>file://</code>. Please use the running server at <a href="http://localhost:5000" target="_blank" class="underline font-bold text-yellow-300">http://localhost:5000</a> instead.</span>
+                    </div>
+
                     <!-- Video Feed Area -->
                     <div class="relative w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-inner">
                         <video id="interview-video" autoplay muted playsinline class="w-full h-full object-cover opacity-80"></video>
@@ -452,6 +458,15 @@
             clearInterval(intervalRef);
             sessionData.endTime = Date.now();
             
+            // Check protocol for Web Speech API compatibility
+            if (window.location.protocol === 'file:') {
+                const protWarn = document.getElementById('protocol-warning');
+                if (protWarn) {
+                    protWarn.classList.remove('hidden');
+                    protWarn.classList.add('flex');
+                }
+            }
+            
             // Re-use camera feed for the interview video before stopping tracks (if ever)
             const interviewVideo = document.getElementById('interview-video');
             interviewVideo.srcObject = video.srcObject;
@@ -533,6 +548,7 @@
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
+            recognition.lang = navigator.language || 'en-US';
 
             isRecording = false;
 
