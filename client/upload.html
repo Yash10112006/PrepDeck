@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - PrepDeck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: { 
+            extend: { 
+                colors: { 
+                    cyanBg: '#08e3d6',
+                    primary: '#08e3d6',
+                    secondary: '#a855f7',
+                    darkbg: '#0a0a0c',
+                    panelbg: '#141416',
+                    cardbg: '#181a1f'
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                }
+            } 
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom scrollbar for main content */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a40; }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen p-4 xl:p-6 flex flex-col font-sans">
+
+    <!-- Top Navbar -->
+    <header class="flex justify-between items-center mb-6 px-4">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-wand-magic-sparkles text-primary text-2xl drop-shadow-[0_0_10px_rgba(8,227,214,0.3)]"></i>
+            <span class="text-2xl font-bold tracking-tight text-white">PrepDeck</span>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <nav class="hidden md:flex gap-6 text-sm font-semibold tracking-wide text-slate-400">
+                <a href="dashboard.html" class="cursor-pointer hover:text-white transition-colors">Dash</a>
+                <a href="notes.html" class="cursor-pointer hover:text-white transition-colors">Notes</a>
+                <a href="pyqs.html" class="cursor-pointer hover:text-white transition-colors">PYQs</a>
+                <a href="upload.html" class="text-primary cursor-pointer hover:text-white transition-colors">Upload</a>
+                <span class="cursor-pointer hover:text-white transition-colors opacity-50 cursor-not-allowed hidden xl:inline">Reports</span>
+            </nav>
+            <div id="top-avatar" class="w-10 h-10 rounded-full bg-slate-700 overflow-hidden ml-4 shadow-lg border border-slate-600 flex items-center justify-center text-sm font-bold bg-gradient-to-br from-slate-600 to-slate-800">
+                ?
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 gap-6 max-w-[1400px] mx-auto w-full">
+        
+        <!-- Floating Sidebar -->
+        <aside class="w-64 bg-panelbg rounded-[2rem] p-4 flex flex-col justify-between hidden lg:flex border border-white/5 shadow-2xl h-full flex-shrink-0">
+            <nav class="space-y-2 mt-2">
+                <a href="dashboard.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-shapes text-slate-500"></i></div>
+                    <span class="truncate">Dashboard</span>
+                </a>
+                <a href="notes.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-book-open text-slate-500"></i></div>
+                    <span class="truncate">Study Library</span>
+                </a>
+                <a href="pyqs.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-regular fa-file-lines text-slate-500"></i></div>
+                    <span class="truncate">Past Papers</span>
+                </a>
+                <a href="upload.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white/5 text-white font-semibold transition-colors border border-white/5 shadow-sm hover:shadow-md">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-chart-simple text-primary"></i></div>
+                    <span class="truncate">Uploads</span>
+                </a>
+            </nav>
+
+            <div class="mt-auto">
+                <button onclick="api.logout()" class="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors font-medium mb-4">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-sign-out-alt text-slate-500 transition-colors pointer-events-none"></i></div>
+                    <span>Logout</span>
+                </button>
+                <div class="bg-[#1c1d22] rounded-2xl p-4 flex items-center gap-3 border border-white/5 shadow-lg">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-[#ff6b6b] border border-white/10 shrink-0 shadow-inner">
+                        <i class="fa-solid fa-user-astronaut text-sm"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-bold text-white truncate" id="sidebar-name">Loading...</p>
+                        <p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase truncate mt-0.5">Pro Tier Plan</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 pr-2 pb-10 flex flex-col pt-4 items-center">
+            
+            <header class="mb-10 w-full max-w-2xl text-center xl:text-left">
+                <h1 class="text-4xl xl:text-5xl font-extrabold tracking-tight mb-2 text-white">Upload Document</h1>
+                <p class="text-slate-400 font-medium tracking-wide max-w-xl leading-relaxed text-sm">Add a new PDF note or PYQ to your resources to begin AI synthesis.</p>
+            </header>
+
+            <form id="upload-form" class="bg-cardbg p-10 rounded-[2.5rem] relative overflow-hidden shadow-2xl border border-white/5 w-full max-w-2xl">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-[#08e3d6]/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+                <div class="space-y-8 relative z-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Subject Name</label>
+                            <input type="text" id="subject" required class="w-full bg-[#050505] text-white text-sm font-bold rounded-2xl py-4 px-5 focus:outline-none focus:ring-1 focus:ring-primary border border-white/5" placeholder="e.g. Data Structures">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Semester</label>
+                            <select id="semester" required class="w-full bg-[#050505] text-white text-sm font-bold rounded-2xl py-4 px-5 focus:outline-none focus:ring-1 focus:ring-primary border border-white/5 appearance-none">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Document Type</label>
+                            <select id="type" required class="w-full bg-[#050505] text-white text-sm font-bold rounded-2xl py-4 px-5 focus:outline-none focus:ring-1 focus:ring-primary border border-white/5 appearance-none">
+                                <option value="Note">Class Notes</option>
+                                <option value="PYQ">Past Paper (PYQ)</option>
+                            </select>
+                        </div>
+                        <div id="year-container" class="opacity-30 pointer-events-none transition-opacity">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Year (PYQs)</label>
+                            <input type="text" id="year" class="w-full bg-[#050505] text-white text-sm font-bold rounded-2xl py-4 px-5 focus:outline-none focus:ring-1 focus:ring-primary border border-white/5" placeholder="e.g. 2023">
+                        </div>
+                        <div id="examType-container" class="opacity-30 pointer-events-none transition-opacity">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Exam (PYQs)</label>
+                            <select id="examType" class="w-full bg-[#050505] text-white text-sm font-bold rounded-2xl py-4 px-5 focus:outline-none focus:ring-1 focus:ring-primary border border-white/5 appearance-none">
+                                <option value="midsem">Midsem</option>
+                                <option value="endsem">Endsem</option>
+                                <option value="backlog">Backlog</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">PDF File</label>
+                        <div class="border border-dashed border-white/20 rounded-3xl p-10 text-center hover:border-primary/50 transition-colors bg-[#050505]">
+                            <input type="file" id="file" accept=".pdf" required class="hidden">
+                            <label for="file" class="cursor-pointer flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-[1.5rem] bg-[#1d2630] text-primary flex items-center justify-center text-3xl mb-4 shadow-inner">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <span class="text-white font-extrabold text-lg mb-1" id="file-name">Click to browse file</span>
+                                <span class="text-[10px] font-black tracking-widest uppercase text-slate-500 mt-2">Only PDF files are supported</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="status-msg" class="text-xs font-bold text-center hidden p-4 rounded-2xl border"></div>
+                </div>
+
+                <div class="mt-10 pb-4">
+                    <button type="submit" id="main-upload-btn" class="w-full py-5 rounded-full bg-gradient-to-r from-primary to-[#06b8ad] text-black text-lg font-extrabold transition-all shadow-[0_0_20px_rgba(8,227,214,0.4)] hover:shadow-[0_0_30px_rgba(8,227,214,0.6)] hover:scale-[1.02] cursor-pointer">
+                        <i class="fa-solid fa-arrow-up-from-bracket mr-2"></i> Submit Document
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if(!api.token) window.location.href = 'auth.html';
+
+        try {
+            const userStr = localStorage.getItem('prepdeck_user');
+            if(userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('sidebar-name').innerText = user?.name?.split(' ')[0] || 'Scholar';
+                document.getElementById('top-avatar').innerHTML = user?.name ? user.name.charAt(0).toUpperCase() : '?'; 
+            }
+        } catch(e) {
+            console.error("Local user load error:", e);
+        }
+
+        const typeSelect = document.getElementById('type');
+        const yearContainer = document.getElementById('year-container');
+        const examTypeContainer = document.getElementById('examType-container');
+        const yearInput = document.getElementById('year');
+        const examTypeInput = document.getElementById('examType');
+        const fileInput = document.getElementById('file');
+        const fileNameDisplay = document.getElementById('file-name');
+        const form = document.getElementById('upload-form');
+        const statusMsg = document.getElementById('status-msg');
+        const submitBtn = document.getElementById('main-upload-btn');
+
+        typeSelect.addEventListener('change', (e) => {
+            if(e.target.value === 'PYQ') {
+                yearContainer.classList.remove('opacity-30', 'pointer-events-none');
+                examTypeContainer.classList.remove('opacity-30', 'pointer-events-none');
+                yearInput.required = true;
+                examTypeInput.required = true;
+            } else {
+                yearContainer.classList.add('opacity-30', 'pointer-events-none');
+                examTypeContainer.classList.add('opacity-30', 'pointer-events-none');
+                yearInput.required = false;
+                examTypeInput.required = false;
+                yearInput.value = '';
+                examTypeInput.value = 'midsem';
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                fileNameDisplay.innerText = e.target.files[0].name;
+                fileNameDisplay.classList.remove('text-white');
+                fileNameDisplay.classList.add('text-[#08e3d6]');
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if(!file || file.type !== 'application/pdf') {
+                showStatus('Please select a valid PDF file.', 'error');
+                return;
+            }
+
+            submitBtn.innerText = 'Uploading...';
+            submitBtn.disabled = true;
+            statusMsg.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('subject', document.getElementById('subject').value);
+            formData.append('semester', document.getElementById('semester').value);
+            formData.append('type', document.getElementById('type').value);
+            formData.append('file', file);
+            
+            if(typeSelect.value === 'PYQ') {
+                formData.append('year', yearInput.value);
+                formData.append('examType', examTypeInput.value);
+            }
+
+            try {
+                await api.uploadDocument(formData);
+                showStatus('Document uploaded successfully!', 'success');
+                form.reset();
+                fileNameDisplay.innerText = 'Click to browse file';
+                fileNameDisplay.classList.add('text-white');
+                fileNameDisplay.classList.remove('text-[#08e3d6]');
+                if(typeSelect.value !== 'PYQ') {
+                    yearContainer.classList.add('opacity-30', 'pointer-events-none');
+                    examTypeContainer.classList.add('opacity-30', 'pointer-events-none');
+                }
+            } catch(err) {
+                showStatus(err.message || 'Error uploading document', 'error');
+            } finally {
+                submitBtn.innerText = 'Upload Document';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusMsg.innerText = msg;
+            statusMsg.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'text-red-400', 'bg-[#08e3d6]/10', 'border-[#08e3d6]/30', 'text-[#08e3d6]');
+            if(type === 'error') {
+                statusMsg.classList.add('bg-red-500/10', 'border-red-500/30', 'text-red-400');
+            } else {
+                statusMsg.classList.add('bg-[#08e3d6]/10', 'border-[#08e3d6]/30', 'text-[#08e3d6]');
+            }
+        }
+    </script>
+</body>
+</html>

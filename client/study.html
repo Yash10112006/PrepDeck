@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Mode - PrepDeck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: { extend: { colors: { primary: '#6366f1', secondary: '#a855f7', darkbg: '#0f172a' } } }
+      }
+    </script>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Load face-api.js via CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.js"></script>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col overflow-hidden">
+
+    <!-- Header / Navbar -->
+    <header class="glass px-6 py-4 flex justify-between items-center border-b border-white/10 shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="dashboard.html" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="font-bold text-xl" id="doc-title">Loading Document...</h1>
+                <p class="text-xs text-slate-400" id="doc-meta">Preparing Study Session</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-700">
+                <div class="text-center">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Session Time</p>
+                    <p class="font-mono font-bold text-lg" id="timer-display">00:00:00</p>
+                </div>
+                <div class="w-px h-8 bg-slate-700"></div>
+                <div class="text-center">
+                    <p class="text-[10px] text-primary uppercase tracking-wider font-bold">Focus Level</p>
+                    <p class="font-mono font-bold text-lg text-primary" id="focus-percentage">100%</p>
+                </div>
+            </div>
+            
+            <button id="end-session-btn" class="px-6 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors font-medium border border-red-500/30">
+                End Session
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex p-6 gap-6 h-[calc(100vh-80px)]">
+        <!-- PDF Viewer Panel -->
+        <div class="flex-grow glass-card rounded-2xl overflow-hidden relative border border-white/10 shadow-2xl flex flex-col">
+            <div class="p-3 bg-slate-900 flex justify-between items-center border-b border-white/10 shrink-0">
+                <div class="flex gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="text-sm text-slate-400 font-medium" id="pdf-viewer-bar">Document Viewer</div>
+                <div class="w-16"></div>
+            </div>
+            <iframe id="pdf-frame" class="w-full flex-grow bg-white" src=""></iframe>
+        </div>
+
+        <!-- Sidebar / AI Panel -->
+        <div class="w-80 flex flex-col gap-6 shrink-0">
+            <!-- Camera / WebRTC Feed -->
+            <div class="glass-card rounded-2xl p-4 border border-white/10 shadow-lg relative overflow-hidden">
+                <h3 class="text-sm font-bold mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-primary"></i> Focus Monitor
+                    <div class="ml-auto w-2 h-2 rounded-full bg-red-500 animate-pulse" id="recording-indicator"></div>
+                </h3>
+                <div class="relative rounded-xl overflow-hidden bg-slate-900 aspect-video flex items-center justify-center">
+                    <video id="webcam" autoplay muted playsinline class="w-full h-full object-cover"></video>
+                    <div id="camera-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm z-10">
+                        <i class="fa-solid fa-spinner fa-spin text-primary text-2xl mb-2"></i>
+                        <p class="text-xs text-slate-400">Loading AI Models...</p>
+                    </div>
+                    <!-- Overlay for tracking box -->
+                    <canvas id="overlay" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></canvas>
+                </div>
+                <div class="mt-4 flex justify-between items-center bg-slate-900/50 rounded-lg p-2 px-3 border border-slate-700">
+                    <span class="text-xs text-slate-400">Status</span>
+                    <span class="text-xs font-bold text-green-400" id="status-text">Focused</span>
+                </div>
+            </div>
+
+            <!-- Stats Panel -->
+            <div class="glass-card rounded-2xl p-5 border border-white/10 shadow-lg flex-grow flex flex-col">
+                <h3 class="text-sm font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-secondary"></i> Live Analytics
+                </h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Time Focused</span>
+                            <span class="text-green-400 font-mono" id="stat-focused-time">00:00</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 100%" id="bar-focus"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Time Distracted</span>
+                            <span class="text-red-400 font-mono" id="stat-distracted-time">00:00</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5">
+                            <div class="bg-red-500 h-1.5 rounded-full" style="width: 0%" id="bar-distract"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto">
+                    <div id="ai-alert-box" class="hidden p-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
+                        <p class="text-orange-400 text-xs font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Distraction Detected!
+                        </p>
+                        <p class="text-[10px] text-slate-400 mt-1">Please look back at the screen.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Interview Modal -->
+    <div id="interview-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] hidden flex items-center justify-center p-6 overflow-y-auto">
+        <div class="glass-card rounded-3xl w-full max-w-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden my-auto">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 rounded-full blur-[60px] pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary/20 rounded-full blur-[60px] pointer-events-none"></div>
+            
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                            <i class="fa-solid fa-robot text-primary"></i> AI Interview Session
+                        </h2>
+                        <p class="text-slate-400 mt-1 text-sm">Validating your learning from this session.</p>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white" onclick="window.location.href='dashboard.html'">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="interview-loading" class="py-12 flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 border-4 border-slate-700 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-300 font-medium" id="loading-text">Analyzing document and generating questions...</p>
+                </div>
+
+                <div id="interview-content" class="hidden flex-col gap-4">
+                    <!-- Warning banner -->
+                    <div id="mock-warning" class="hidden bg-red-500/20 border border-red-500/50 text-red-200 text-xs p-3 rounded-xl flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
+                        <span><strong>API Key Missing:</strong> You are in Mock Mode. To get real questions from your PDF, add GEMINI_API_KEY to your .env file!</span>
+                    </div>
+
+                    <!-- Video Feed Area -->
+                    <div class="relative w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-inner">
+                        <video id="interview-video" autoplay muted playsinline class="w-full h-full object-cover opacity-80"></video>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
+                        
+                        <!-- AI Avatar / Indicator -->
+                        <div class="absolute top-4 right-4 flex items-center gap-2 bg-slate-900/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                            <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse" id="live-indicator"></div>
+                            <span class="text-xs font-bold text-slate-300 tracking-wider uppercase">Live</span>
+                        </div>
+
+                        <!-- Subtitle Area (Question) -->
+                        <div class="absolute bottom-0 left-0 right-0 p-6">
+                            <span class="text-xs font-bold text-primary uppercase tracking-wider mb-2 block" id="q-number">Question 1/10</span>
+                            <p class="text-xl font-medium text-white drop-shadow-md" id="ai-question">Loading question...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3 mt-2">
+                        <textarea id="user-answer" class="w-full h-24 bg-slate-900/80 border border-slate-700 rounded-xl p-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-white resize-none" placeholder="Speak your answer or type it here..."></textarea>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-2">
+                        <button id="voice-answer-btn" class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-microphone"></i> Voice Answer
+                        </button>
+                        <button id="submit-answer-btn" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-secondary text-white font-medium shadow-lg hover:opacity-90 transition-opacity">
+                            Submit Answer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Report Section -->
+                <div id="interview-report" class="hidden space-y-6">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
+                            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Avg Score</p>
+                            <p class="text-2xl font-bold text-primary" id="rep-score">0/10</p>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
+                            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Focus</p>
+                            <p class="text-2xl font-bold text-green-400" id="rep-focus">0%</p>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
+                            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Discipline</p>
+                            <p class="text-md font-bold text-white mt-1" id="rep-discipline">Unknown</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-900/50 rounded-xl p-5 border border-slate-700">
+                        <h4 class="font-bold text-white mb-2">Summary</h4>
+                        <p class="text-sm text-slate-300" id="rep-summary"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-900/50 rounded-xl p-5 border border-slate-700">
+                            <h4 class="font-bold text-green-400 mb-2"><i class="fa-solid fa-arrow-up"></i> Strengths</h4>
+                            <ul class="text-sm text-slate-300 list-disc pl-4 space-y-1" id="rep-strengths"></ul>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-xl p-5 border border-slate-700">
+                            <h4 class="font-bold text-red-400 mb-2"><i class="fa-solid fa-arrow-down"></i> Weaknesses</h4>
+                            <ul class="text-sm text-slate-300 list-disc pl-4 space-y-1" id="rep-weaknesses"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Evaluation List -->
+                    <div class="bg-slate-900/50 rounded-xl p-5 border border-slate-700">
+                        <h4 class="font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-square-poll-horizontal text-primary"></i> Question Review & Answers
+                        </h4>
+                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2" id="rep-eval-list">
+                            <!-- Items will be injected dynamically -->
+                        </div>
+                    </div>
+                    
+                    <button onclick="window.location.href='dashboard.html'" class="w-full py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-colors">
+                        Return to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if(!api.token) window.location.href = 'auth.html';
+        const urlParams = new URLSearchParams(window.location.search);
+        const docId = urlParams.get('docId');
+
+        // State
+        let sessionData = {
+            documentId: docId,
+            startTime: Date.now(),
+            endTime: null,
+            durationMs: 0,
+            focusedMs: 0,
+            distractedMs: 0
+        };
+
+        let isTracking = false;
+        let isFocused = true;
+        let distractionTimer = null;
+        let intervalRef = null;
+        let isRecording = false;
+
+        // UI Elements
+        const timerDisplay = document.getElementById('timer-display');
+        const focusPercentDisplay = document.getElementById('focus-percentage');
+        const statFocusedTime = document.getElementById('stat-focused-time');
+        const statDistractedTime = document.getElementById('stat-distracted-time');
+        const barFocus = document.getElementById('bar-focus');
+        const barDistract = document.getElementById('bar-distract');
+        const statusText = document.getElementById('status-text');
+        const alertBox = document.getElementById('ai-alert-box');
+        
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('overlay');
+        const camLoading = document.getElementById('camera-loading');
+
+        // Document Load
+        async function loadDoc() {
+            try {
+                if(!docId) throw new Error("No document specified");
+                const res = await fetch(`${API_BASE_URL}/docs/${docId}`, { headers: api.getHeaders() });
+                const doc = await res.json();
+                
+                document.getElementById('doc-title').innerText = doc.originalName;
+                document.getElementById('doc-meta').innerText = `${doc.subject} • ${doc.type}`;
+                document.getElementById('pdf-frame').src = doc.filepath; // Real path if using express static
+                
+                // Note: To view PDFs cleanly, we might need a PDF viewer, 
+                // but setting src to filepath handles it via browser default if accessible.
+                // In local dev, we might need to point to http://localhost:5000/uploads/...
+                document.getElementById('pdf-frame').src = `http://localhost:5000${doc.filepath}`;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // WebRTC & Face API Setup
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        resolve(video);
+                    };
+                });
+            } catch (e) {
+                console.error("Camera error:", e);
+                camLoading.innerHTML = `<p class="text-red-400 text-xs text-center px-4">Camera error.<br>Please allow access.</p>`;
+            }
+        }
+
+        async function loadAIModels() {
+            try {
+                camLoading.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-primary text-2xl mb-2"></i><p class="text-xs text-slate-400">Loading Face AI Models...</p>`;
+                // Enforce a strict 5-second timeout on model downloads
+                const loadModelsPromise = Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri('https://raw.githubusercontent.com/vladmandic/face-api/master/model/'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('https://raw.githubusercontent.com/vladmandic/face-api/master/model/')
+                ]);
+                
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Timeout loading models")), 5000)
+                );
+
+                await Promise.race([loadModelsPromise, timeoutPromise]);
+                setTimeout(() => startTracking(), 500); // Give camera time
+            } catch(e) {
+                console.warn("Using fallback focus tracking mock.", e);
+                camLoading.innerHTML = `<p class="text-green-400 text-xs font-bold bg-slate-900/80 px-3 py-1 rounded">Slow network detected. Using Mock Tracker.</p>`;
+                setTimeout(() => {
+                    camLoading.style.display = 'none';
+                    startMockTracking();
+                }, 1500);
+            }
+        }
+
+        async function startTracking() {
+            camLoading.style.display = 'none';
+            isTracking = true;
+
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            // Analysis loop
+            setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+                
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                // faceapi.draw.drawDetections(canvas, resizedDetections); // Uncomment to draw box
+                
+                if (detections.length > 0) {
+                    handleFocus(true);
+                } else {
+                    handleFocus(false);
+                }
+            }, 1000);
+            
+            startTickTimer();
+        }
+
+        // Mock Fallback Tracking
+        function startMockTracking() {
+            isTracking = true;
+            // Every 5 seconds, 10% chance to look distracted
+            setInterval(() => {
+                if(Math.random() > 0.8) {
+                    handleFocus(false);
+                    setTimeout(() => handleFocus(true), 3000);
+                } else {
+                    handleFocus(true);
+                }
+            }, 2000);
+            startTickTimer();
+        }
+
+        function handleFocus(focused) {
+            if(!isTracking) return;
+            
+            isFocused = focused;
+            if(!focused) {
+                statusText.innerText = "Distracted";
+                statusText.className = "text-xs font-bold text-red-500";
+                alertBox.classList.remove('hidden');
+                
+                if(!distractionTimer) {
+                    distractionTimer = setTimeout(() => {
+                        playAudioWarning();
+                    }, 3000); // Warn after 3 seconds of distraction
+                }
+            } else {
+                statusText.innerText = "Focused";
+                statusText.className = "text-xs font-bold text-green-400";
+                alertBox.classList.add('hidden');
+                
+                if(distractionTimer) {
+                    clearTimeout(distractionTimer);
+                    distractionTimer = null;
+                }
+            }
+        }
+
+        function playAudioWarning() {
+            if ('speechSynthesis' in window) {
+                const msg = new SpeechSynthesisUtterance("Please focus on your screen. You appear to be distracted.");
+                msg.rate = 1;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        function startTickTimer() {
+            intervalRef = setInterval(() => {
+                sessionData.durationMs += 1000;
+                if(isFocused) sessionData.focusedMs += 1000;
+                else sessionData.distractedMs += 1000;
+                
+                updateUI();
+            }, 1000);
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
+            if(hrs > 0) return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateUI() {
+            timerDisplay.innerText = formatTime(sessionData.durationMs);
+            statFocusedTime.innerText = formatTime(sessionData.focusedMs);
+            statDistractedTime.innerText = formatTime(sessionData.distractedMs);
+            
+            const focusPct = sessionData.durationMs > 0 ? Math.round((sessionData.focusedMs / sessionData.durationMs) * 100) : 100;
+            const distPct = 100 - focusPct;
+            
+            focusPercentDisplay.innerText = `${focusPct}%`;
+            barFocus.style.width = `${focusPct}%`;
+            barDistract.style.width = `${distPct}%`;
+        }
+
+        let interviewQuestions = [];
+        let studentAnswersArray = [];
+        let currentQIndex = 0;
+
+        document.getElementById('end-session-btn').addEventListener('click', async () => {
+            isTracking = false;
+            clearInterval(intervalRef);
+            sessionData.endTime = Date.now();
+            
+            // Re-use camera feed for the interview video before stopping tracks (if ever)
+            const interviewVideo = document.getElementById('interview-video');
+            interviewVideo.srcObject = video.srcObject;
+            // DO NOT stop tracks so it stays open for the video mode
+            // video.srcObject?.getTracks().forEach(track => track.stop());
+            
+            try {
+                await api.saveStudySession(sessionData);
+            } catch(e) {
+                console.error("Failed to save session", e);
+            }
+
+            document.getElementById('interview-modal').classList.remove('hidden');
+            
+            try {
+                const data = await api.generateQuestions(docId);
+                
+                if (data.isMock) {
+                    document.getElementById('mock-warning').classList.remove('hidden');
+                    document.getElementById('mock-warning').classList.add('flex');
+                }
+                
+                interviewQuestions = data.questions;
+                studentAnswersArray = [];
+                currentQIndex = 0;
+                
+                showNextQuestion();
+            } catch(e) {
+                console.error(e);
+                document.getElementById('loading-text').innerText = "Failed to generate questions. " + e.message;
+            }
+        });
+
+        function showNextQuestion() {
+            if(currentQIndex >= interviewQuestions.length) {
+                finishInterview();
+                return;
+            }
+            document.getElementById('interview-loading').classList.add('hidden');
+            document.getElementById('interview-content').classList.remove('hidden');
+            document.getElementById('interview-content').classList.add('flex');
+            
+            document.getElementById('q-number').innerText = `Question ${currentQIndex + 1}/${interviewQuestions.length}`;
+            let qText = interviewQuestions[currentQIndex];
+            if(typeof qText === 'object') qText = qText.question || JSON.stringify(qText);
+            document.getElementById('ai-question').innerText = qText;
+            document.getElementById('user-answer').value = '';
+            
+            speakQuestion(qText);
+        }
+
+        function speakQuestion(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop current speech
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.rate = 1;
+                
+                // Animate indicator when speaking
+                const liveInd = document.getElementById('live-indicator');
+                liveInd.classList.add('bg-blue-400');
+                liveInd.classList.remove('bg-green-400');
+                
+                msg.onend = () => {
+                    liveInd.classList.remove('bg-blue-400');
+                    liveInd.classList.add('bg-green-400');
+                    // Auto-start recording after question is spoken
+                    if(!isRecording && voiceBtn) {
+                        voiceBtn.click();
+                    }
+                };
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        // Voice Recognition (Live Interivew Feature)
+        const voiceBtn = document.getElementById('voice-answer-btn');
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            isRecording = false;
+
+            voiceBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    try {
+                        recognition.start();
+                    } catch (err) {
+                        console.warn("Recognition start error:", err);
+                        recognition.stop();
+                    }
+                } else {
+                    recognition.stop();
+                }
+            });
+
+            recognition.onstart = () => {
+                isRecording = true;
+                const answerBox = document.getElementById('user-answer');
+                voiceBtn.innerHTML = `<i class="fa-solid fa-circle-stop text-red-500"></i> Stop Listening...`;
+                voiceBtn.classList.add('bg-red-500/10', 'border', 'border-red-500/30');
+                answerBox.placeholder = "Listening to you speak...";
+            };
+
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    const answerBox = document.getElementById('user-answer');
+                    answerBox.value = (answerBox.value || '').trim() + ' ' + finalTranscript.trim();
+                }
+            };
+            
+            recognition.onerror = (e) => {
+                isRecording = false;
+                voiceBtn.innerHTML = `<i class="fa-solid fa-microphone"></i> Voice Answer`;
+                voiceBtn.classList.remove('bg-red-500/10', 'border', 'border-red-500/30');
+                console.error('Speech recognition error', e.error);
+                
+                const answerBox = document.getElementById('user-answer');
+                if (e.error === 'not-allowed') {
+                    answerBox.placeholder = "Microphone access blocked. Please enable microphone permission in your browser settings.";
+                } else if (e.error === 'no-speech') {
+                    answerBox.placeholder = "No speech detected. Try speaking closer to the mic.";
+                } else {
+                    answerBox.placeholder = `Speech recognition error: ${e.error}. Try typing your answer instead.`;
+                }
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                const answerBox = document.getElementById('user-answer');
+                voiceBtn.innerHTML = `<i class="fa-solid fa-microphone"></i> Voice Answer`;
+                voiceBtn.classList.remove('bg-red-500/10', 'border', 'border-red-500/30');
+                if (answerBox.placeholder === "Listening to you speak...") {
+                    answerBox.placeholder = "Type your answer here or use the voice button...";
+                }
+            };
+        } else {
+            voiceBtn.style.display = 'none'; // hide if not supported
+        }
+
+        document.getElementById('submit-answer-btn').addEventListener('click', () => {
+            const currentAnswer = document.getElementById('user-answer').value;
+            let qText = interviewQuestions[currentQIndex];
+            if(typeof qText === 'object') qText = qText.question || JSON.stringify(qText);
+
+            studentAnswersArray.push({
+                question: qText,
+                answer: currentAnswer || "[No Answer Provided]"
+            });
+            currentQIndex++;
+            showNextQuestion();
+        });
+
+        async function finishInterview() {
+            document.getElementById('interview-content').classList.add('hidden');
+            document.getElementById('interview-loading').classList.remove('hidden');
+            document.getElementById('loading-text').innerText = "Evaluating answers and generating report...";
+
+            try {
+                const payload = {
+                    documentId: docId,
+                    studentAnswersArray,
+                    totalTime: sessionData.durationMs,
+                    focusedTime: sessionData.focusedMs,
+                    distractedTime: sessionData.distractedMs,
+                    faceDetectionLog: "Consistent",
+                    distractionEvents: 0,
+                    tabSwitchCount: 0
+                };
+
+                const data = await api.evaluateSession(payload);
+                renderReport(data);
+            } catch(e) {
+                document.getElementById('loading-text').innerText = "Failed to evaluate answers. " + e.message;
+            }
+        }
+
+        function renderReport(data) {
+            document.getElementById('interview-loading').classList.add('hidden');
+            document.getElementById('interview-report').classList.remove('hidden');
+
+            const report = data.report || data; // handle slight variations
+
+            document.getElementById('rep-score').innerText = `${report.average_score}/10`;
+            document.getElementById('rep-focus').innerText = `${report.focus_percentage}%`;
+            document.getElementById('rep-discipline').innerText = report.discipline_level || 'Unknown';
+            document.getElementById('rep-summary').innerText = report.summary || 'Completed.';
+
+            const ulStrengths = document.getElementById('rep-strengths');
+            ulStrengths.innerHTML = '';
+            (report.strengths || []).forEach(s => {
+                const li = document.createElement('li');
+                li.innerText = s;
+                ulStrengths.appendChild(li);
+            });
+
+            const ulWeaknesses = document.getElementById('rep-weaknesses');
+            ulWeaknesses.innerHTML = '';
+            (report.weaknesses || []).forEach(w => {
+                const li = document.createElement('li');
+                li.innerText = w;
+                ulWeaknesses.appendChild(li);
+            });
+
+            const evalList = document.getElementById('rep-eval-list');
+            evalList.innerHTML = '';
+            const evaluations = data.evaluation || [];
+            evaluations.forEach(q => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'p-4 rounded-lg bg-slate-800/80 border border-slate-700 space-y-2';
+                
+                let badgeColor = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                if (q.correctness?.toLowerCase() === 'correct') {
+                    badgeColor = 'bg-green-500/20 text-green-400 border border-green-500/30';
+                } else if (q.correctness?.toLowerCase() === 'incorrect') {
+                    badgeColor = 'bg-red-500/20 text-red-400 border border-red-500/30';
+                }
+                
+                itemDiv.innerHTML = `
+                    <div class="flex justify-between items-start gap-3">
+                        <span class="text-sm font-semibold text-slate-200">Q: ${q.question}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${badgeColor}">${q.correctness || 'Graded'} (${q.score}/10)</span>
+                    </div>
+                    <div class="text-xs space-y-1.5 mt-2">
+                        <p class="text-slate-400 font-medium">Your Answer: <span class="text-slate-300 font-normal italic">"${q.student_answer || '[No Answer Provided]'}"</span></p>
+                        <p class="text-green-400 font-medium">Expected Answer: <span class="text-slate-300 font-normal">${q.expected_answer || 'N/A'}</span></p>
+                        <p class="text-primary font-medium font-bold">Feedback: <span class="text-slate-300 font-normal">${q.feedback || 'No feedback provided.'}</span></p>
+                    </div>
+                `;
+                evalList.appendChild(itemDiv);
+            });
+        }
+
+        // Init
+        loadDoc().then(async () => {
+            await setupCamera();
+            loadAIModels();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepDeck - Smart Study Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#6366f1',
+              secondary: '#a855f7',
+              darkbg: '#0f172a',
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 border-b border-white/10 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text text-2xl font-bold">
+                <i class="fa-solid fa-layer-group text-primary"></i> PrepDeck
+            </div>
+        </div>
+        <div>
+            <a href="auth.html" class="px-6 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-medium mr-4">Sign In</a>
+            <a href="auth.html" class="px-6 py-2 rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg shadow-primary/30 transition-all font-medium">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-grow flex flex-col items-center justify-center text-center px-4 py-20 relative overflow-hidden">
+        <!-- Background Effects -->
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+            Study Smarter with <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">AI-Powered Focus</span>
+        </h1>
+        <p class="text-lg md:text-xl text-slate-400 max-w-2xl mb-10">
+            PrepDeck is your centralized hub for Notes, PYQs, and AI-driven focus tracking. Say goodbye to distractions and ace your exams.
+        </p>
+        <div class="flex gap-4">
+            <a href="auth.html" class="px-8 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-lg font-medium shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Start Studying Now <i class="fa-solid fa-arrow-right ml-2"></i></a>
+        </div>
+
+        <!-- Features grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 max-w-6xl w-full">
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center">
+                <div class="w-14 h-14 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Centralized Resources</h3>
+                <p class="text-slate-400 text-sm">Upload and organize your notes and Previous Year Question Papers (PYQs) intelligently.</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center">
+                <div class="w-14 h-14 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">AI Focus Tracking</h3>
+                <p class="text-slate-400 text-sm">Our WebRTC-based study mode keeps you engaged and alerts you when you are distracted.</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center">
+                <div class="w-14 h-14 bg-pink-500/20 text-pink-400 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">AI Interviews</h3>
+                <p class="text-slate-400 text-sm">Test your knowledge with AI-driven questions generated directly from your study materials.</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

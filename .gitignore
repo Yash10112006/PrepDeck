@@ -1,0 +1,18 @@
+# Dependency directories
+server/node_modules/
+node_modules/
+
+# Environment files
+server/.env
+.env
+.env.local
+
+# User uploads / generated files
+server/uploads/*
+!server/uploads/.gitkeep
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
