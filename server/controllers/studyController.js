@@ -411,4 +411,26 @@ const getQuizHistory = async (req, res) => {
   }
 };
 
-module.exports = { saveSessionStats, getUserStats, generateInterviewQuestions, evaluateInterviewSession, generateQuiz, evaluateQuiz, getQuizHistory };
+const getStudySessionsHistory = async (req, res) => {
+  try {
+    const sessions = await StudySession.find({ user: req.user._id })
+      .populate('document')
+      .sort({ startTime: -1 });
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAllQuizHistory = async (req, res) => {
+  try {
+    const attempts = await QuizAttempt.find({ user: req.user._id })
+      .populate('document')
+      .sort({ attemptedAt: -1 });
+    res.json(attempts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { saveSessionStats, getUserStats, generateInterviewQuestions, evaluateInterviewSession, generateQuiz, evaluateQuiz, getQuizHistory, getStudySessionsHistory, getAllQuizHistory };

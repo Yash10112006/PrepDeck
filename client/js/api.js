@@ -137,6 +137,18 @@ class Api {
     if (res.status === 401) this.logout();
     return res.json();
   }
+
+  async getStudySessions() {
+    const res = await fetch(`${API_BASE_URL}/study/sessions`, { headers: this.getHeaders() });
+    if (res.status === 401) this.logout();
+    return res.json();
+  }
+
+  async getAllQuizHistory() {
+    const res = await fetch(`${API_BASE_URL}/study/quizzes`, { headers: this.getHeaders() });
+    if (res.status === 401) this.logout();
+    return res.json();
+  }
 }
 
 const api = new Api();

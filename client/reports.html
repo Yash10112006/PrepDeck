@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - PrepDeck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: { 
+            extend: { 
+                colors: { 
+                    cyanBg: '#08e3d6',
+                    primary: '#08e3d6',
+                    secondary: '#a855f7',
+                    darkbg: '#0a0a0c',
+                    panelbg: '#141416',
+                    cardbg: '#181a1f'
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                }
+            } 
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a40; }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 h-screen p-4 xl:p-6 flex flex-col font-sans overflow-hidden">
+
+    <!-- Top Navbar -->
+    <header class="max-w-[1400px] mx-auto w-full flex justify-between items-center mb-6 px-4 shrink-0">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-wand-magic-sparkles text-primary text-2xl drop-shadow-[0_0_10px_rgba(8,227,214,0.3)]"></i>
+            <span class="text-2xl font-bold tracking-tight text-white">PrepDeck</span>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <nav class="hidden md:flex gap-6 text-sm font-semibold tracking-wide text-slate-400">
+                <a href="dashboard.html" class="cursor-pointer hover:text-white transition-colors">Dash</a>
+                <a href="notes.html" class="cursor-pointer hover:text-white transition-colors">Notes</a>
+                <a href="pyqs.html" class="cursor-pointer hover:text-white transition-colors">PYQs</a>
+                <a href="upload.html" class="cursor-pointer hover:text-white transition-colors">Upload</a>
+                <a href="reports.html" class="text-primary cursor-pointer hover:text-white transition-colors">Reports</a>
+            </nav>
+            <div id="top-avatar" class="w-10 h-10 rounded-full bg-slate-700 overflow-hidden ml-4 shadow-lg border border-slate-600 flex items-center justify-center text-sm font-bold bg-gradient-to-br from-slate-600 to-slate-800">
+                ?
+            </div>
+        </div>
+    </header>
+
+    <!-- min-h-0 is CRITICAL for flex children to allow internal overflow scrolling! -->
+    <div class="flex flex-1 gap-6 overflow-hidden max-w-[1400px] mx-auto w-full min-h-0">
+        
+        <!-- Floating Sidebar -->
+        <aside class="w-64 bg-panelbg rounded-[2rem] p-4 flex flex-col justify-between hidden lg:flex border border-white/5 shadow-2xl h-full flex-shrink-0">
+            <nav class="space-y-2 mt-2">
+                <a href="dashboard.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-shapes text-slate-500"></i></div>
+                    <span class="truncate">Dashboard</span>
+                </a>
+                <a href="notes.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-book-open text-slate-500"></i></div>
+                    <span class="truncate">Study Library</span>
+                </a>
+                <a href="pyqs.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-regular fa-file-lines text-slate-500"></i></div>
+                    <span class="truncate">Past Papers</span>
+                </a>
+                <a href="upload.html" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors font-medium">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-chart-simple text-slate-500"></i></div>
+                    <span class="truncate">Uploads</span>
+                </a>
+            </nav>
+
+            <div class="mt-auto">
+                <button onclick="api.logout()" class="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors font-medium mb-4">
+                    <div class="w-6 flex justify-center"><i class="fa-solid fa-sign-out-alt text-slate-500 transition-colors pointer-events-none"></i></div>
+                    <span>Logout</span>
+                </button>
+                <div class="bg-[#1c1d22] rounded-2xl p-4 flex items-center gap-3 border border-white/5 shadow-lg">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-primary border border-white/10 shrink-0 shadow-inner">
+                        <i class="fa-solid fa-user-astronaut text-sm"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-bold text-white truncate" id="sidebar-name">Scholar</p>
+                        <p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase truncate mt-0.5">Pro Tier Plan</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 overflow-y-auto pr-2 pb-10 min-h-0">
+            <div class="pl-0 xl:pl-6 pt-2">
+                <h1 class="text-4xl xl:text-5xl font-extrabold tracking-tight mb-2 text-white">Analytics & Reports</h1>
+                <p class="text-slate-400 font-medium tracking-wide mb-10 max-w-lg leading-relaxed text-sm">
+                    Detailed review of your cognitive metrics, study focus logs, and quiz evaluations.
+                </p>
+
+                <!-- Aggregated Score Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-cardbg rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[140px]">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="w-10 h-10 rounded-2xl bg-[#192b34] text-[#08e3d6] flex items-center justify-center shadow-inner shrink-0">
+                                <i class="fa-solid fa-shapes text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <h3 class="text-3xl font-extrabold text-white tracking-tight" id="agg-sessions">0</h3>
+                            <p class="text-[10px] uppercase tracking-widest font-black text-slate-500 mt-2 truncate">Total Sessions Completed</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-cardbg rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[140px]">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="w-10 h-10 rounded-2xl bg-[#1b2b2a] text-[#5eead4] flex items-center justify-center shadow-inner shrink-0">
+                                <i class="fa-solid fa-clock text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <h3 class="text-3xl font-extrabold text-white tracking-tight" id="agg-study-time">0.0h</h3>
+                            <p class="text-[10px] uppercase tracking-widest font-black text-slate-500 mt-2 truncate">Total Study Hours</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-cardbg rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[140px]">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="w-10 h-10 rounded-2xl bg-[#281b35] text-[#b266ff] flex items-center justify-center shadow-inner shrink-0">
+                                <i class="fa-solid fa-bullseye text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <h3 class="text-3xl font-extrabold text-white tracking-tight" id="agg-focus">0%</h3>
+                            <p class="text-[10px] uppercase tracking-widest font-black text-slate-500 mt-2 truncate">Average Focus Score</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Sections -->
+                <div class="space-y-10">
+                    <!-- Study Sessions -->
+                    <div class="bg-cardbg rounded-[2rem] p-8 border border-white/5 shadow-xl">
+                        <h2 class="text-2xl font-extrabold text-white mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-primary"></i> Study Focus History
+                        </h2>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead>
+                                    <tr class="border-b border-white/5 text-[10px] uppercase tracking-widest font-black text-slate-500">
+                                        <th class="pb-3 pr-4">Date</th>
+                                        <th class="pb-3 pr-4">Subject</th>
+                                        <th class="pb-3 pr-4">Study Duration</th>
+                                        <th class="pb-3 pr-4">Focused Duration</th>
+                                        <th class="pb-3">Focus Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="study-sessions-list" class="divide-y divide-white/5 text-slate-300 font-medium">
+                                    <tr>
+                                        <td colspan="5" class="py-8 text-center text-slate-500">Loading sessions...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Attempts -->
+                    <div class="bg-cardbg rounded-[2rem] p-8 border border-white/5 shadow-xl">
+                        <h2 class="text-2xl font-extrabold text-white mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-square-poll-horizontal text-secondary"></i> Quiz Evaluation History
+                        </h2>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead>
+                                    <tr class="border-b border-white/5 text-[10px] uppercase tracking-widest font-black text-slate-500">
+                                        <th class="pb-3 pr-4">Date</th>
+                                        <th class="pb-3 pr-4">Subject</th>
+                                        <th class="pb-3 pr-4">Difficulty</th>
+                                        <th class="pb-3 pr-4">Score</th>
+                                        <th class="pb-3">Performance Feedback</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quiz-attempts-list" class="divide-y divide-white/5 text-slate-300 font-medium">
+                                    <tr>
+                                        <td colspan="5" class="py-8 text-center text-slate-500">Loading quiz attempts...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if(!api.token) window.location.href = 'auth.html';
+        
+        try {
+            const userStr = localStorage.getItem('prepdeck_user');
+            if(userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('sidebar-name').innerText = user?.name?.split(' ')[0] || 'Scholar';
+                document.getElementById('top-avatar').innerHTML = user?.name ? user.name.charAt(0).toUpperCase() : '?'; 
+            }
+        } catch(e) {
+            console.error("Local user load error:", e);
+        }
+
+        function formatDuration(ms) {
+            if (!ms || ms <= 0) return '0s';
+            const totalSeconds = Math.floor(ms / 1000);
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
+            
+            let output = '';
+            if (hrs > 0) output += `${hrs}h `;
+            if (mins > 0) output += `${mins}m `;
+            if (secs > 0 || output === '') output += `${secs}s`;
+            return output.trim();
+        }
+
+        async function loadReports() {
+            try {
+                // Fetch stats, sessions, and quizzes in parallel
+                const [stats, sessions, quizzes] = await Promise.all([
+                    api.getDashboardStats().catch(()=>({})),
+                    api.getStudySessions().catch(()=>([])),
+                    api.getAllQuizHistory().catch(()=>([])),
+                ]);
+
+                // Render Summary Metrics
+                document.getElementById('agg-sessions').innerText = sessions.length || 0;
+                
+                const totalStudyMinutes = Math.floor((stats.totalStudyTime || 0) / 60000);
+                const studyHours = (totalStudyMinutes / 60).toFixed(1);
+                document.getElementById('agg-study-time').innerText = `${studyHours}h`;
+                
+                const focusScore = Math.round(stats.focusPercentage || 0);
+                document.getElementById('agg-focus').innerText = `${focusScore}%`;
+
+                // Render Study Sessions Focus History
+                const sessionTableBody = document.getElementById('study-sessions-list');
+                sessionTableBody.innerHTML = '';
+                
+                if (sessions.length === 0) {
+                    sessionTableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500">No study sessions recorded yet.</td></tr>`;
+                } else {
+                    sessions.forEach(s => {
+                        const dateStr = new Date(s.startTime).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        const subjectName = s.document?.subject || 'General Study';
+                        const totalDur = formatDuration(s.durationMs);
+                        const focusDur = formatDuration(s.focusedMs);
+                        const focusPct = s.durationMs > 0 ? Math.round((s.focusedMs / s.durationMs) * 100) : 100;
+                        
+                        let badgeColor = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                        if (focusPct >= 80) badgeColor = 'bg-green-500/20 text-green-400 border border-green-500/30';
+                        else if (focusPct < 50) badgeColor = 'bg-red-500/20 text-red-400 border border-red-500/30';
+                        
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-white/5 hover:bg-white/[0.01] transition-colors';
+                        row.innerHTML = `
+                            <td class="py-4 pr-4 text-xs font-bold text-slate-400">${dateStr}</td>
+                            <td class="py-4 pr-4 text-white font-extrabold">${subjectName}</td>
+                            <td class="py-4 pr-4 font-mono text-slate-300">${totalDur}</td>
+                            <td class="py-4 pr-4 font-mono text-green-400">${focusDur}</td>
+                            <td class="py-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide border ${badgeColor}">${focusPct}% Focus</span>
+                            </td>
+                        `;
+                        sessionTableBody.appendChild(row);
+                    });
+                }
+
+                // Render Quiz Attempt History
+                const quizTableBody = document.getElementById('quiz-attempts-list');
+                quizTableBody.innerHTML = '';
+                
+                if (quizzes.length === 0) {
+                    quizTableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500">No quiz attempts recorded yet.</td></tr>`;
+                } else {
+                    quizzes.forEach(q => {
+                        const dateStr = new Date(q.attemptedAt).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        const subjectName = q.document?.subject || 'Practice Material';
+                        const scoreStr = `${q.score}/${q.totalQuestions}`;
+                        const feedback = q.performanceSummary || 'Review completed.';
+                        
+                        let diffBadge = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                        if (q.difficultyLevel === 'easy') diffBadge = 'bg-green-500/20 text-green-400 border border-green-500/30';
+                        else if (q.difficultyLevel === 'hard') diffBadge = 'bg-red-500/20 text-red-400 border border-red-500/30';
+
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-white/5 hover:bg-white/[0.01] transition-colors';
+                        row.innerHTML = `
+                            <td class="py-4 pr-4 text-xs font-bold text-slate-400">${dateStr}</td>
+                            <td class="py-4 pr-4 text-white font-extrabold">${subjectName}</td>
+                            <td class="py-4 pr-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${diffBadge}">${q.difficultyLevel}</span>
+                            </td>
+                            <td class="py-4 pr-4 font-mono font-bold text-primary">${scoreStr}</td>
+                            <td class="py-4 text-slate-400 text-xs">${feedback}</td>
+                        `;
+                        quizTableBody.appendChild(row);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Reports load error:", err);
+            }
+        }
+
+        loadReports();
+    </script>
+</body>
+</html>
