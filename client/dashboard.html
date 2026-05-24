@@ -119,15 +119,15 @@
         </aside>
 
         <!-- Main Workspace (Now correctly scrolls due to min-h-0 wrapper) -->
-        <main class="flex-1 overflow-y-auto pr-2 pb-10 min-h-0">
-            <div class="pl-0 xl:pl-6 pt-2">
+        <main class="flex-1 overflow-y-auto xl:overflow-y-hidden pr-2 pb-4 min-h-0 flex flex-col">
+            <div class="pl-0 xl:pl-6 pt-2 flex flex-col flex-1 min-h-0">
                 <h1 class="text-4xl xl:text-5xl font-extrabold tracking-tight mb-2 text-white">Welcome back, Scholar.</h1>
-                <p class="text-slate-400 font-medium tracking-wide mb-10 max-w-lg leading-relaxed text-sm">
+                <p class="text-slate-400 font-medium tracking-wide mb-6 max-w-lg leading-relaxed text-sm">
                     Everything you need to learn smarter is here. Access notes, practice PYQs, and stay focused.
                 </p>
 
                 <!-- Quick Action Pills -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
                     <a href="upload.html" class="bg-cardbg rounded-3xl p-6 flex flex-col items-center justify-center gap-4 border border-white/5 hover:border-white/10 hover:bg-white/[0.03] transition-all cursor-pointer group shadow-xl">
                         <div class="w-14 h-14 rounded-2xl bg-[#1d2630] text-[#08e3d6] flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform">
                             <i class="fa-solid fa-file-arrow-up"></i>
@@ -159,7 +159,7 @@
 
                 <!-- Main Layout Grid -->
                 <!-- Removed h-full constraints to prevent horizontal squishing! Let grids grow! -->
-                <div class="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6">
+                <div class="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6 flex-1 min-h-0">
                     
                     <!-- Daily Progress Huge Card -->
                     <div class="bg-cardbg rounded-[2.5rem] p-10 border border-white/5 flex flex-col xl:flex-row justify-between items-center xl:items-start shadow-xl relative overflow-hidden min-h-[360px]">
