@@ -270,7 +270,7 @@
                 document.getElementById('doc-title').innerText = doc.originalName;
                 document.getElementById('doc-meta').innerText = `${doc.subject} • ${doc.type}`;
 
-                loadPDF(`http://localhost:5000${doc.filepath}`);
+                loadPDF(`https://prepdeck-a1so.onrender.com${doc.filepath}`);
             } catch (e) {
                 console.error(e);
             }

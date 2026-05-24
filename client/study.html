@@ -160,7 +160,7 @@
                     <!-- File protocol warning banner -->
                     <div id="protocol-warning" class="hidden bg-yellow-500/20 border border-yellow-500/50 text-yellow-200 text-xs p-3 rounded-xl flex items-center gap-2">
                         <i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>
-                        <span><strong>Local File Detected:</strong> Browsers block Speech Recognition when opening files directly via <code>file://</code>. Please use the running server at <a href="http://localhost:5000" target="_blank" class="underline font-bold text-yellow-300">http://localhost:5000</a> instead.</span>
+                        <span><strong>Local File Detected:</strong> Browsers block Speech Recognition when opening files directly via <code>file://</code>. Please use the running server at <a href="https://prepdeck-a1so.onrender.com" target="_blank" class="underline font-bold text-yellow-300">https://prepdeck-a1so.onrender.com</a> instead.</span>
                     </div>
 
                     <!-- Video Feed Area -->
@@ -296,7 +296,7 @@
                 // Note: To view PDFs cleanly, we might need a PDF viewer, 
                 // but setting src to filepath handles it via browser default if accessible.
                 // In local dev, we might need to point to http://localhost:5000/uploads/...
-                document.getElementById('pdf-frame').src = `http://localhost:5000${doc.filepath}`;
+                document.getElementById('pdf-frame').src = `https://prepdeck-a1so.onrender.com${doc.filepath}`;
             } catch(e) {
                 console.error(e);
             }
