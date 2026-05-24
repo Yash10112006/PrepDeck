@@ -1,3 +1,4 @@
+const fs = require('fs');
 require('dotenv').config();
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
@@ -51,7 +52,11 @@ app.get('/api/notes', protect, getFilteredNotes);
 app.get('/api/pyqs', protect, getFilteredPyqs);
 
 // Fallback
-app.use((req, res) => {
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/uploads')) {
+    return res.status(404).send('File not found');
+  }
+
   res.sendFile(path.join(__dirname, '../client', 'index.html'));
 });
 
